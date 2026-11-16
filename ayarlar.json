@@ -1,0 +1,26 @@
+{
+  "medyaKlasoru": "C:\\Users\\gameb\\Videos",
+  "kisayollar": [],
+  "miIp": "192.168.1.125",
+  "miUygulamalar": [
+    {
+      "ad": "YouTube",
+      "baglanti": "https://www.youtube.com"
+    },
+    {
+      "ad": "Netflix",
+      "baglanti": "https://www.netflix.com/title"
+    },
+    {
+      "ad": "Prime Video",
+      "baglanti": "https://app.primevideo.com"
+    },
+    {
+      "ad": "Disney+",
+      "baglanti": "https://www.disneyplus.com"
+    }
+  ],
+  "miSertifika": "-----BEGIN CERTIFICATE-----\nMIICqDCCAZCgAwIBAgIIecLoliD8UNUwDQYJKoZIhvcNAQELBQAwFDESMBAGA1UE\nAwwJYXR2cmVtb3RlMB4XDTI0MDEwMTAwMDAwMFoXDTQ5MTIzMTIzNTk1OVowFDES\nMBAGA1UEAwwJYXR2cmVtb3RlMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC\nAQEAwAumPs4Eg/sapzKoMmnwLCqs6LnkDbK+VyUmkVXNu3YKhIIUjJZd/yBqqom9\nc1Cjxh2omkesxx0YaORf1QXbxayRWYQ2dCJQFCtwcdutvgm/dRIDmjKHkPlNAcpl\nFPdJiWLA0Bqew8kRlUD5VcLsGat1qTVaJVlKerIT3RlWE4seTY3lnGs8YbFSZJrc\n+qJKz0FLc/O5e5pqhRTuO0YNBRQH2sx/z+7t18hFFGuk6mLcrWdAX/LCowz6ZmnG\nYwS+cKMwuyRhjmKDmgaWEsD3kWoenXBitLWH4t67WH9p5zcmMG9P6ExNEvQhuyJ/\n29BFfUb5mjfYujjI3WRi22r/1QIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQCUnELD\n7Q61MARkuDE88Plo9jJDDX2oq1uZg01vPcXh9XT6JlxAvTsVY1B+6Mvh3gnRHGOX\nbh4ZaBx4vMEYsD2a5tZy5vflLS8tHamRES0YXPbnnKwIDMXfq7i+wtFUUdCB1H9R\nCeM/nFvqS2JrUUoobVJZGwPSLXG7uJYrqI+wfbLbTz1VfIm9eFpc02lQNjo6UlVQ\nhrOENVHh58rM600NgUmSqYJW812+VDxvANCINDKAG1GPblaYzBhCYEvYeUVK3EC7\nO42J/yHAGsjPEs67XYJmwXdIiOqQXZvjTSpSruk4JSJ2Nbm2tUWsiLoNyb12LOOr\nyjjlsITNB33rWlJ2\n-----END CERTIFICATE-----\n",
+  "miAnahtar": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDAC6Y+zgSD+xqn\nMqgyafAsKqzoueQNsr5XJSaRVc27dgqEghSMll3/IGqqib1zUKPGHaiaR6zHHRho\n5F/VBdvFrJFZhDZ0IlAUK3Bx262+Cb91EgOaMoeQ+U0BymUU90mJYsDQGp7DyRGV\nQPlVwuwZq3WpNVolWUp6shPdGVYTix5NjeWcazxhsVJkmtz6okrPQUtz87l7mmqF\nFO47Rg0FFAfazH/P7u3XyEUUa6TqYtytZ0Bf8sKjDPpmacZjBL5wozC7JGGOYoOa\nBpYSwPeRah6dcGK0tYfi3rtYf2nnNyYwb0/oTE0S9CG7In/b0EV9RvmaN9i6OMjd\nZGLbav/VAgMBAAECggEACheSoPJKonTrraWn2R5gFLIZbBF4vo+KGSJGqJSNvzAw\n1U3QrqKoReP6NwQOBKVUNfERDyp9FemdgsWdk6A/MGAlM0MTaX70Hls6CYG126q/\nePN9ZPkKzr+LIHD2Zuen4aRi5YzAkyFZ3zIO6EbaCW9NO5smJZhPpar+CDxwnY42\ntvpyYR9PGdII7363HWxe+PmxOezFJ3rKnck9KUFo2c5aglkYKcrTP4IcKZeVSulU\nX+TjokFHrUjpVuzZsNZTSaVmTsgcqXCKvdDZp2yv/18wARradWxipRJRo54kj5iW\nZVsbhf1+2FS+u8p7oIqkmlLf7fUTKXmkiq+0Pja6cQKBgQDg3L+o547SxIbIFzBj\nddHXmpqJPstN6luw3ZXAQ85ZJ28vHjhxrECRlCnBcAqJkqTlTjJvfAyYY2UyDOg9\nTh8LazlbxRLL0JpWphMB1w19l3kg7JX8q/BWtjWT3HceBypbu3sriyRrS4NKjgPe\n84MPvcWW6jGVkKzvQ1LuFoWXtwKBgQDao4/+mMld7yT7xKuxaAL3arc+0Rtn+xkb\nIpoEc9tyzyJLwCz+KphH31GH06xp8wzPvHk8ljp2eLLi0vNd1/GVSleywUL7nBgk\nv/MGFvSiaJu0OpnpIrlLOyiBunzWAPfUa+wMfvm74e76OKACgPW10yr+IO9I61hD\nIQmCAaCs0wKBgDBSwE2IFcVtvplZgmiddU8kRnmgKQjBiJrlw7zh1YKLWvWBRRgI\nsIeYk7CiZ2FRRmaQ+33B5uMI2UJ8S5yBIWLO1DDIlVV/qutcHVGT6a5H0xwkO8dl\nG+1GkxUHmAG4AH5eOAYPjPAR9lEbW/GZ21ySp9fa1HUT9lYk3bmU1XjZAoGAeNZf\nViohWO48NX4MGn/O6+mqH2i4ye5IgOvNzdouljSO0ukCtPLbuRVe3UALEX+IPCQB\nqY+p/iJVU/GdGeeomIc/EwenOqKZ4W3JJjt3t28zZxfgSq6rVD389D4akrh0QI3p\nJzriUYncZ6T2IowdwQFVyKBxP476+BcBRz4ZDIsCgYB4KIrSEKr0qQI5nIpc66K3\nbv+fxBgVrR1ifZVAi9QSKxPyNfgLZ3CWhvjQmRqgP4bJK9RTRIuuQ0XNF8RnabBu\nzW3+ugABOk+V88oSfrDicjTfBR79vZRcDBtVW5qKgNc0STcxF8Wlu8IOaNhneBPh\nhOKLMGecozwpILmmnE5PtA==\n-----END PRIVATE KEY-----\n",
+  "miEslesti": true
+}

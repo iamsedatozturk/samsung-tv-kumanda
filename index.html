@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0d11">
+<title>Kumanda</title>
+<style>
+  :root { --zemin:#0b0d11; --govde:#181c23; --kart:#171b22; --tus:#262c37; --tus-bas:#343c4a; --cizgi:#2a313c; --yazi:#e8ecf1; --soluk:#8b95a3; --vurgu:#4c9aff; --tehlike:#e5484d; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  [hidden] { display:none !important; }
+  body { margin:0; min-height:100dvh; background:var(--zemin); color:var(--yazi); font:13px/1.35 system-ui, "Segoe UI", sans-serif;
+    padding:10px 10px calc(10px + env(safe-area-inset-bottom)); display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:flex-start; align-content:flex-start; }
+  body:not(.mi) [data-cihaz=mi], body.mi [data-cihaz=tv] { display:none !important; }
+  body.mi .yalniz-tv { opacity:.28; pointer-events:none; }
+
+  button { font:inherit; font-size:12px; color:var(--yazi); background:var(--tus); border:0; border-radius:10px; min-height:32px; padding:0 6px; cursor:pointer; touch-action:manipulation; user-select:none; }
+  button:active, button.basili { background:var(--tus-bas); transform:scale(.96); }
+  button:focus-visible, input:focus-visible { outline:2px solid var(--vurgu); outline-offset:2px; }
+
+  /* Kumanda gövdesi */
+  .kumanda { width:292px; flex:none; display:grid; gap:9px; padding:16px 18px 18px; border-radius:46px 46px 54px 54px;
+    background:linear-gradient(180deg, #20252e, var(--govde) 30%, #12151b); border:1px solid var(--cizgi);
+    box-shadow:0 18px 44px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.07); }
+  .ust { display:grid; grid-template-columns:40px 1fr 40px; gap:8px; align-items:center; }
+  .yuvarlak { width:40px; height:40px; min-height:0; padding:0; border-radius:50%; font-size:9px; display:grid; place-items:center; }
+  .guc { background:var(--tehlike); } .guc:active { background:#c93b40; }
+  .guc svg { width:18px; height:18px; }
+  .secici { display:flex; background:#0e1116; border:1px solid var(--cizgi); border-radius:20px; padding:3px; gap:3px; }
+  .secici button { flex:1; min-height:30px; border-radius:16px; background:none; color:var(--soluk); white-space:nowrap; }
+  .secici button.secili { background:var(--vurgu); color:#fff; font-weight:600; }
+  #durum { display:flex; align-items:center; justify-content:center; gap:6px; color:var(--soluk); font-size:11px; min-height:14px; }
+  #durum i { width:7px; height:7px; border-radius:50%; background:var(--soluk); }
+  #durum.acik i { background:#3dd68c; } #durum.kapali i { background:var(--tehlike); }
+  .satir { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:6px; }
+  .satir button { font-size:11px; white-space:nowrap; }
+
+  .yon { width:150px; height:150px; margin:2px auto; border-radius:50%; background:var(--tus); display:grid; grid-template:repeat(3,1fr) / repeat(3,1fr);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 2px 6px rgba(0,0,0,.4); }
+  .yon button { background:none; min-height:0; font-size:15px; color:#c9d1dc; border-radius:50%; }
+  .yon button:active { background:var(--tus-bas); }
+  .yon .tamam { background:var(--vurgu); color:#fff; font-size:13px; font-weight:600; margin:1px; box-shadow:0 2px 6px rgba(0,0,0,.35); }
+  .yon .tamam:active { background:#3d86e6; }
+
+  .orta { display:grid; grid-template-columns:50px 1fr 50px; gap:10px; align-items:stretch; }
+  .kol { display:grid; grid-template-rows:1fr auto 1fr; background:var(--tus); border-radius:25px; text-align:center; color:var(--soluk); font-size:9px; letter-spacing:.08em; overflow:hidden; }
+  .kol button { background:none; border-radius:0; min-height:38px; font-size:17px; }
+  .kol button:active { background:var(--tus-bas); transform:none; }
+  .ic { display:grid; gap:6px; align-content:center; }
+  .ic button { font-size:11px; min-height:28px; }
+  .ses { display:flex; align-items:center; gap:8px; color:var(--soluk); font-size:11px; }
+  .ses input { flex:1; min-width:0; accent-color:var(--vurgu); height:18px; margin:0; }
+  .ses output { width:1.8em; text-align:right; font-variant-numeric:tabular-nums; color:var(--yazi); }
+  .oynat button { font-size:13px; }
+  .renk button { min-height:12px; height:12px; border-radius:6px; } .r{background:#c93b3b} .g{background:#2f9e5b} .y{background:#c9a227} .b{background:#2f6fd0}
+  .sekmeler { display:flex; gap:5px; justify-content:center; border-top:1px solid var(--cizgi); padding-top:9px; }
+  .sekmeler button { flex:1; min-height:28px; font-size:11px; background:none; border:1px solid var(--cizgi); color:var(--soluk); white-space:nowrap; }
+  .sekmeler button.secili { border-color:var(--vurgu); color:var(--yazi); }
+
+  /* Açılır paneller */
+  #paneller { width:292px; flex:none; display:grid; gap:10px; }
+  .panel { background:var(--kart); border:1px solid var(--cizgi); border-radius:18px; padding:12px; display:grid; gap:9px; }
+  h2 { margin:0; font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--soluk); }
+  .baslik { display:flex; align-items:center; } .baslik button { margin-left:auto; min-height:26px; padding:0 10px; font-size:11px; }
+  input[type=text] { font:inherit; color:var(--yazi); background:var(--zemin); border:1px solid var(--cizgi); border-radius:9px; padding:0 10px; min-height:36px; width:100%; min-width:0; }
+  form { display:flex; gap:6px; } form button { padding:0 12px; flex:none; min-height:36px; }
+  .izgara3 { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; } .izgara3 button { min-height:36px; font-size:14px; }
+  .dugmeler { display:grid; grid-template-columns:repeat(auto-fill, minmax(80px,1fr)); gap:6px; }
+  .dugmeler button { position:relative; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #kisayollar.duzenle button::after { content:"×"; position:absolute; top:0; right:6px; color:var(--tehlike); font-weight:700; }
+  .bos, .ipucu { color:var(--soluk); font-size:11px; margin:0; }
+  #medya { display:grid; gap:2px; max-height:240px; overflow:auto; }
+  #medya button { text-align:left; background:none; border-radius:7px; padding:0 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #medya button:hover { background:var(--tus); }
+  #yol { color:var(--soluk); font-size:11px; word-break:break-all; }
+  #miKod { text-transform:uppercase; letter-spacing:.2em; }
+  #bildirim { position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom)); transform:translateX(-50%); background:#3a1d1f; border:1px solid var(--tehlike); color:#ffd7d9; padding:9px 13px; border-radius:10px; max-width:min(92vw,440px); display:none; z-index:5; }
+  #bildirim.bilgi { background:#16283f; border-color:var(--vurgu); color:#d6e7ff; }
+  @media (hover:none) { .yalniz-pc { display:none; } }
+</style>
+</head>
+<body>
+
+<div class="kumanda">
+  <div class="ust">
+    <button class="yuvarlak guc" data-tus="KEY_POWEROFF" data-mi="POWER" data-onay="TV kapatılsın mı? (Ağdan tekrar açılamaz)" aria-label="Güç">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>
+    </button>
+    <div class="secici">
+      <button data-sec="tv">Samsung TV</button>
+      <button data-sec="mi">Mi Stick</button>
+    </div>
+    <button class="yuvarlak" data-tus="KEY_SOURCE" title="TV kaynağı">Kaynak</button>
+  </div>
+  <div id="durum"><i></i><span>Bağlanıyor…</span></div>
+
+  <div class="satir" data-cihaz="tv">
+    <button data-tus="KEY_TV">TV</button>
+    <button data-tus="KEY_HDMI">HDMI</button>
+    <button data-tus="KEY_MENU">Menü</button>
+    <button data-tus="KEY_TOOLS">Araçlar</button>
+    <button data-tus="KEY_INFO">Bilgi</button>
+  </div>
+  <div class="satir" data-cihaz="mi">
+    <button data-tus="KEY_HDMI" title="TV'yi HDMI girişine alır">HDMI</button>
+    <button data-mi="SETTINGS">Ayarlar</button>
+    <button data-mi="SEARCH">Asistan</button>
+    <button data-mi="MENU">Menü</button>
+  </div>
+
+  <div class="yon">
+    <span></span><button data-tus="KEY_UP" data-mi="UP" data-tekrar aria-label="Yukarı">▲</button><span></span>
+    <button data-tus="KEY_LEFT" data-mi="LEFT" data-tekrar aria-label="Sol">◀</button>
+    <button class="tamam" data-tus="KEY_ENTER" data-mi="OK">OK</button>
+    <button data-tus="KEY_RIGHT" data-mi="RIGHT" data-tekrar aria-label="Sağ">▶</button>
+    <span></span><button data-tus="KEY_DOWN" data-mi="DOWN" data-tekrar aria-label="Aşağı">▼</button><span></span>
+  </div>
+
+  <div class="satir">
+    <button data-tus="KEY_RETURN" data-mi="BACK">↩ Geri</button>
+    <button data-tus="KEY_CONTENTS" data-mi="HOME">⌂ Ana ekran</button>
+    <button data-tus="KEY_EXIT" data-cihaz="tv">Çıkış</button>
+    <button data-mi="PLAY_PAUSE" data-cihaz="mi">⏯</button>
+  </div>
+
+  <div class="orta">
+    <div class="kol"><button data-tus="KEY_VOLUP" data-tekrar aria-label="Ses aç">＋</button>SES<button data-tus="KEY_VOLDOWN" data-tekrar aria-label="Ses kıs">－</button></div>
+    <div class="ic">
+      <button id="sessiz">Sessiz</button>
+      <button data-tus="KEY_CH_LIST" class="yalniz-tv">Kanal listesi</button>
+      <button data-tus="KEY_GUIDE" class="yalniz-tv">Rehber</button>
+      <button data-tus="KEY_PRECH" class="yalniz-tv">Önceki kanal</button>
+    </div>
+    <div class="kol yalniz-tv"><button data-tus="KEY_CHUP" data-tekrar aria-label="Kanal ileri">▲</button>KANAL<button data-tus="KEY_CHDOWN" data-tekrar aria-label="Kanal geri">▼</button></div>
+  </div>
+  <div class="ses">
+    <span>Ses</span>
+    <input id="ses" type="range" min="0" max="100" value="0" aria-label="Ses seviyesi">
+    <output id="sesDeger">–</output>
+  </div>
+
+  <div class="satir oynat">
+    <button data-tus="KEY_REWIND" data-mi="REWIND" aria-label="Geri sar">⏪</button>
+    <button data-tus="KEY_PLAY" data-mi="PLAY_PAUSE" aria-label="Oynat">▶</button>
+    <button data-tus="KEY_PAUSE" data-mi="PLAY_PAUSE" aria-label="Duraklat">⏸</button>
+    <button data-tus="KEY_STOP" data-mi="STOP" aria-label="Durdur">⏹</button>
+    <button data-tus="KEY_FF" data-mi="FF" aria-label="İleri sar">⏩</button>
+  </div>
+  <div class="satir renk yalniz-tv">
+    <button class="r" data-tus="KEY_RED" aria-label="Kırmızı"></button><button class="g" data-tus="KEY_GREEN" aria-label="Yeşil"></button>
+    <button class="y" data-tus="KEY_YELLOW" aria-label="Sarı"></button><button class="b" data-tus="KEY_CYAN" aria-label="Mavi"></button>
+  </div>
+
+  <div class="sekmeler">
+    <button data-panel="rakam" data-cihaz="tv">123</button>
+    <button data-panel="uygulama" data-cihaz="mi">Uygulamalar</button>
+    <button data-panel="yazi">Yazı</button>
+    <button data-panel="kisayol" data-cihaz="tv">Kısayollar</button>
+    <button data-panel="medya" data-cihaz="tv">Medya</button>
+    <button data-panel="esle" data-cihaz="mi">Eşleştir</button>
+  </div>
+</div>
+
+<div id="paneller" hidden>
+  <div class="panel" id="p-rakam" hidden>
+    <h2>Kanala git</h2>
+    <form id="kanalForm">
+      <input type="text" id="kanalNo" inputmode="numeric" pattern="[0-9]{1,4}" placeholder="Kanal no (ör. 12)" autocomplete="off" required>
+      <button>Git</button>
+    </form>
+    <div class="izgara3" id="rakamlar"></div>
+  </div>
+
+  <div class="panel" id="p-uygulama" hidden>
+    <h2>Mi Stick uygulamaları</h2>
+    <div id="miUygulamalar" class="dugmeler"></div>
+  </div>
+
+  <div class="panel" id="p-yazi" hidden>
+    <h2 id="yaziBaslik">Yazı gönder</h2>
+    <form id="yaziForm">
+      <input type="text" id="yazi" placeholder="Ekranda yazı kutusu açıkken" autocomplete="off" maxlength="500" required>
+      <button>Gönder</button>
+    </form>
+    <div class="satir" data-cihaz="mi">
+      <button data-mi="DEL">⌫ Sil</button>
+      <button data-mi="ENTER">Enter</button>
+    </div>
+  </div>
+
+  <div class="panel" id="p-kisayol" hidden>
+    <div class="baslik"><h2>Kısayollar</h2><button id="duzenle">Düzenle</button></div>
+    <div id="kisayollar" class="dugmeler"></div>
+    <form id="kisayolForm">
+      <input type="text" id="kAd" placeholder="Ad (TRT 1)" maxlength="30" required style="flex:1">
+      <input type="text" id="kTus" placeholder="Kanal / tuşlar" required style="flex:1">
+      <button>Ekle</button>
+    </form>
+    <p class="ipucu">Sayı yazarsan o kanala gider (12). Tuş dizisi de olur: <code>MENU DOWN DOWN ENTER</code></p>
+  </div>
+
+  <div class="panel" id="p-medya" hidden>
+    <div class="baslik"><h2>Bilgisayardan TV'ye oynat</h2><button id="medyaDur">Durdur</button></div>
+    <div id="yol"></div>
+    <div id="medya"></div>
+  </div>
+
+  <div class="panel" id="p-esle" hidden>
+    <h2>Mi Stick eşleştirme</h2>
+    <p id="miEsleMetin" class="ipucu"></p>
+    <form id="miKodForm" hidden>
+      <input type="text" id="miKod" maxlength="6" pattern="[0-9A-Fa-f]{6}" placeholder="KOD" autocomplete="off" autocapitalize="characters" required>
+      <button>Onayla</button>
+    </form>
+    <button id="miEsleBaslat">Eşleştir</button>
+  </div>
+
+  <p class="ipucu yalniz-pc" data-cihaz="tv">Klavye: oklar, Enter, Backspace = Geri, Esc = Çıkış, + / − ses, PgUp / PgDn kanal, M sessiz, rakamlar</p>
+  <p class="ipucu yalniz-pc" data-cihaz="mi">Klavye: oklar, Enter, Backspace = Geri, Esc = Ana ekran, boşluk = oynat / duraklat, + / − ve M = TV sesi</p>
+</div>
+
+<div id="bildirim" role="status"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+let cihaz = 'tv', miDurum = {}, miKodBekleniyor = false, acikPanel = null;
+let sesSurukleniyor = false, sessiz = false;
+
+let bildirimZamani;
+function bildir(metin, bilgi = false) {
+  const b = $('#bildirim');
+  b.textContent = metin; b.className = bilgi ? 'bilgi' : ''; b.style.display = 'block';
+  clearTimeout(bildirimZamani);
+  bildirimZamani = setTimeout(() => (b.style.display = 'none'), 4000);
+}
+async function api(yol, govde) {
+  const y = await fetch(yol, govde === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(govde) });
+  const veri = await y.json().catch(() => ({ hata: 'Sunucu yanıt vermedi' }));
+  if (!y.ok) throw new Error(veri.hata || 'Hata');
+  return veri;
+}
+const dene = (soz) => soz.catch((e) => bildir(e.message === 'Failed to fetch' ? 'Kumanda sunucusuna ulaşılamıyor' : e.message));
+function tus(tuslar) {
+  navigator.vibrate?.(12);
+  return dene(api('/api/tus', { tuslar }));
+}
+function miTus(tuslar) {
+  navigator.vibrate?.(12);
+  return dene(api('/api/mi/tus', { tuslar }));
+}
+
+// Tuşlar: iki cihazda da karşılığı olan tuş seçili cihaza gider; yalnız data-tus olan hep Samsung'a.
+// Basınca gider, basılı tutunca tekrarlar (data-tekrar).
+const miyeMi = (b) => b.dataset.mi && (cihaz === 'mi' || !b.dataset.tus);
+const bas = (b) => (miyeMi(b) ? miTus([b.dataset.mi]) : tus([b.dataset.tus]));
+const onayla = (b) => !b.dataset.onay || miyeMi(b) || confirm(b.dataset.onay);
+let tekrar;
+const birak = () => { clearTimeout(tekrar); clearInterval(tekrar); };
+document.addEventListener('pointerdown', (e) => {
+  const b = e.target.closest('[data-tus], [data-mi]');
+  if (!b || !onayla(b)) return;
+  bas(b);
+  if ('tekrar' in b.dataset) { birak(); tekrar = setTimeout(() => { tekrar = setInterval(() => bas(b), 300); }, 450); }
+});
+['pointerup', 'pointercancel', 'pointerleave', 'blur'].forEach((o) => addEventListener(o, birak, true));
+document.addEventListener('click', (e) => { // klavyeyle (Enter / boşluk) tetiklenen düğmeler
+  const b = e.target.closest('[data-tus], [data-mi]');
+  if (b && e.detail === 0 && onayla(b)) bas(b);
+});
+document.addEventListener('contextmenu', (e) => { if (e.target.closest('button')) e.preventDefault(); });
+
+// Klavye
+const KLAVYE = { ArrowUp:'KEY_UP', ArrowDown:'KEY_DOWN', ArrowLeft:'KEY_LEFT', ArrowRight:'KEY_RIGHT', Enter:'KEY_ENTER', Backspace:'KEY_RETURN', Escape:'KEY_EXIT',
+  '+':'KEY_VOLUP', '-':'KEY_VOLDOWN', PageUp:'KEY_CHUP', PageDown:'KEY_CHDOWN', m:'KEY_MUTE', M:'KEY_MUTE' };
+const KLAVYE_MI = { ArrowUp:'UP', ArrowDown:'DOWN', ArrowLeft:'LEFT', ArrowRight:'RIGHT', Enter:'OK', Backspace:'BACK', Escape:'HOME', ' ':'PLAY_PAUSE' };
+document.addEventListener('keydown', (e) => {
+  if (e.target.matches('input, button') || e.ctrlKey || e.altKey || e.metaKey) return;
+  const mi = cihaz === 'mi';
+  const m = mi && KLAVYE_MI[e.key];
+  const t = m ? null : KLAVYE[e.key] || (/^\d$/.test(e.key) ? 'KEY_' + e.key : null);
+  if (!m && (!t || (mi && !/^KEY_(VOL|MUTE)/.test(t)))) return; // Mi modunda Samsung'a yalnız ses gider
+  e.preventDefault();
+  if (m) { miTus([m]); return; }
+  tus([t]);
+  if (t === 'KEY_MUTE' || t.startsWith('KEY_VOL')) setTimeout(durumYenile, 600);
+});
+
+// Durum ve ses
+async function durumYenile() {
+  const d = await api('/api/durum').catch(() => null);
+  const kutu = $('#durum');
+  if (!d) { kutu.className = 'kapali'; kutu.lastElementChild.textContent = 'Sunucu yok'; return; }
+  miDurum = d.mi;
+  if (!miKodBekleniyor) {
+    $('#miEsleMetin').textContent = miDurum.eslesti
+      ? 'Eşleştirilmiş. Yeniden eşleştirmek için başlat; TV ekranında yeni bir kod çıkar.'
+      : 'TV\'yi Mi Stick\'in HDMI girişine al, sonra Eşleştir\'e bas: ekranda 6 haneli kod çıkar.';
+  }
+  if (cihaz === 'mi') {
+    kutu.className = miDurum.bagli ? 'acik' : 'kapali';
+    kutu.lastElementChild.textContent = !miDurum.eslesti ? 'Mi Stick eşleştirilmemiş' : !miDurum.bagli ? 'Mi Stick\'e ulaşılamıyor' : miDurum.acik === false ? 'Mi Stick uykuda' : 'Mi Stick bağlı';
+    if (!miDurum.eslesti && !miEsleGosterildi) { miEsleGosterildi = true; panelAc('esle'); }
+  } else {
+    kutu.className = d.acik ? 'acik' : 'kapali';
+    kutu.lastElementChild.textContent = d.izinBekleniyor ? 'TV ekranında izin ver' : d.acik ? 'TV açık' : 'TV kapalı / ulaşılamıyor';
+  }
+  if (d.izinBekleniyor) bildir('TV ekranında çıkan soruda "İzin ver"i seç (TV kumandasıyla).', true);
+  if (d.acik) {
+    sessiz = d.sessiz;
+    $('#sessiz').textContent = sessiz ? 'Sesi aç' : 'Sessiz';
+    $('#sessiz').classList.toggle('basili', sessiz);
+    if (!sesSurukleniyor) { $('#ses').value = d.ses; $('#sesDeger').textContent = d.ses; }
+  }
+}
+let miEsleGosterildi = false;
+$('#ses').addEventListener('input', (e) => { sesSurukleniyor = true; $('#sesDeger').textContent = e.target.value; });
+$('#ses').addEventListener('change', (e) => {
+  sesSurukleniyor = false;
+  dene(api('/api/ses', { seviye: Number(e.target.value) }));
+});
+$('#sessiz').addEventListener('click', () => dene(api('/api/ses', { sessiz: !sessiz }).then(durumYenile)));
+document.addEventListener('pointerup', (e) => { if (e.target.closest('[data-tus^="KEY_VOL"]')) setTimeout(durumYenile, 600); });
+
+// Paneller: kumandanın altındaki sekmeler birini açar, aynı sekme kapatır.
+function panelAc(ad) {
+  acikPanel = ad;
+  $$('.panel').forEach((p) => { p.hidden = p.id !== 'p-' + ad; });
+  $$('[data-panel]').forEach((b) => b.classList.toggle('secili', b.dataset.panel === ad));
+  $('#paneller').hidden = !ad;
+}
+$$('[data-panel]').forEach((b) => b.addEventListener('click', () => panelAc(acikPanel === b.dataset.panel ? null : b.dataset.panel)));
+
+// Cihaz seçimi (Samsung TV / Mi Stick); son seçim bu tarayıcıda hatırlanır.
+function cihazSec(c) {
+  cihaz = c === 'mi' ? 'mi' : 'tv';
+  document.body.classList.toggle('mi', cihaz === 'mi');
+  $$('[data-sec]').forEach((b) => b.classList.toggle('secili', b.dataset.sec === cihaz));
+  $('#yaziBaslik').textContent = cihaz === 'mi' ? 'Mi Stick\'e yazı gönder' : 'TV\'ye yazı gönder';
+  const sekme = acikPanel && $(`[data-panel="${acikPanel}"]`);
+  if (sekme && sekme.dataset.cihaz && sekme.dataset.cihaz !== cihaz) panelAc(null);
+  try { localStorage.setItem('cihaz', cihaz); } catch {}
+  durumYenile();
+}
+$$('[data-sec]').forEach((b) => b.addEventListener('click', () => cihazSec(b.dataset.sec)));
+let kayitliCihaz = 'tv';
+try { kayitliCihaz = new URLSearchParams(location.search).get('cihaz') || localStorage.getItem('cihaz'); } catch {}
+cihazSec(kayitliCihaz);
+setInterval(() => { if (!document.hidden) durumYenile(); }, 5000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) durumYenile(); });
+
+// Rakamlar, kanal, yazı
+$('#rakamlar').innerHTML = [1,2,3,4,5,6,7,8,9,'',0,''].map((r) => r === '' ? '<span></span>' : `<button data-tus="KEY_${r}">${r}</button>`).join('');
+$('#kanalForm').addEventListener('submit', (e) => { e.preventDefault(); tus([$('#kanalNo').value]); $('#kanalNo').value = ''; });
+$('#yaziForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  dene(api(cihaz === 'mi' ? '/api/mi/yazi' : '/api/yazi', { metin: $('#yazi').value }).then(() => { $('#yazi').value = ''; }));
+});
+
+// Mi Stick: eşleştirme ve uygulamalar
+$('#miEsleBaslat').addEventListener('click', () => dene(api('/api/mi/eslestir', {}).then((y) => {
+  miKodBekleniyor = true;
+  $('#miKodForm').hidden = false;
+  $('#miEsleBaslat').textContent = 'Yeni kod iste';
+  $('#miEsleMetin').textContent = `TV ekranındaki 6 haneli kodu yaz (Mi Stick: ${y.ip}).`;
+  $('#miKod').focus();
+})));
+$('#miKodForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  dene(api('/api/mi/eslestir', { kod: $('#miKod').value }).then(() => {
+    miKodBekleniyor = false;
+    $('#miKodForm').hidden = true; $('#miKod').value = ''; $('#miEsleBaslat').textContent = 'Eşleştir';
+    bildir('Mi Stick eşleştirildi', true);
+    panelAc(null);
+    durumYenile();
+  }));
+});
+api('/api/mi/uygulamalar').then((adlar) => {
+  $('#miUygulamalar').replaceChildren(...adlar.map((ad, sira) => {
+    const b = document.createElement('button');
+    b.textContent = ad;
+    b.onclick = () => dene(api('/api/mi/uygulama', { sira }));
+    return b;
+  }));
+}).catch(() => {});
+
+// Kısayollar
+let kisayollar = [];
+function kisayolCiz() {
+  const kutu = $('#kisayollar');
+  kutu.replaceChildren(...kisayollar.map((k, i) => {
+    const b = document.createElement('button');
+    b.textContent = k.ad; b.title = k.tuslar; b.dataset.sira = i;
+    return b;
+  }));
+  if (!kisayollar.length) kutu.innerHTML = '<p class="bos">Henüz kısayol yok. Sık izlediğin kanalları aşağıdan ekle.</p>';
+}
+const kisayolKaydet = () => dene(api('/api/kisayollar', { kisayollar }).then((l) => { kisayollar = l; kisayolCiz(); }));
+$('#kisayollar').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const k = kisayollar[b.dataset.sira];
+  if ($('#kisayollar').classList.contains('duzenle')) {
+    if (confirm(`"${k.ad}" silinsin mi?`)) { kisayollar.splice(b.dataset.sira, 1); kisayolKaydet(); }
+  } else tus(k.tuslar);
+});
+$('#duzenle').addEventListener('click', (e) => {
+  const acik = $('#kisayollar').classList.toggle('duzenle');
+  e.target.textContent = acik ? 'Bitti' : 'Düzenle';
+});
+$('#kisayolForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const onceki = [...kisayollar];
+  kisayollar.push({ ad: $('#kAd').value, tuslar: $('#kTus').value });
+  api('/api/kisayollar', { kisayollar }).then((l) => { kisayollar = l; kisayolCiz(); e.target.reset(); })
+    .catch((h) => { kisayollar = onceki; bildir(h.message); });
+});
+api('/api/kisayollar').then((l) => { kisayollar = l; kisayolCiz(); }).catch(() => {});
+
+// Medya
+async function medyaAc(yol) {
+  const d = await api('/api/medya?yol=' + encodeURIComponent(yol)).catch((e) => { $('#medya').innerHTML = `<p class="bos">${e.message}</p>`; return null; });
+  if (!d) return;
+  $('#yol').textContent = 'Medya klasörü' + (d.yol ? ' / ' + d.yol.replaceAll('/', ' / ') : '');
+  const ogeler = d.yol ? [{ ad: '..', klasor: true, ust: true }, ...d.ogeler] : d.ogeler;
+  $('#medya').replaceChildren(...ogeler.map((o) => {
+    const b = document.createElement('button');
+    b.textContent = (o.klasor ? '📁 ' : '▶ ') + (o.ust ? 'Üst klasör' : o.ad);
+    const hedef = o.ust ? d.yol.split('/').slice(0, -1).join('/') : (d.yol ? d.yol + '/' : '') + o.ad;
+    b.onclick = () => o.klasor ? medyaAc(hedef) : dene(api('/api/oynat', { yol: hedef }).then(() => bildir('TV\'ye gönderildi: ' + o.ad, true)));
+    return b;
+  }));
+  if (!ogeler.length) $('#medya').innerHTML = '<p class="bos">Bu klasörde oynatılabilir dosya yok. Klasör <code>ayarlar.json</code> içinde değişir.</p>';
+}
+$('#medyaDur').addEventListener('click', () => dene(api('/api/medya-komut', { komut: 'Stop' })));
+medyaAc('');
+</script>
+</body>
+</html>
