@@ -7,7 +7,6 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const TV_IP = process.env.TV_IP || '192.168.1.190';
 const TV_MODEL = 'UE40D6500';
 const PORT = Number(process.env.PORT || 8190);
 const AYAR_DOSYASI = path.join(__dirname, 'ayarlar.json');
@@ -41,10 +40,12 @@ function ayarlariOku() {
 }
 let ayarlar = ayarlariOku();
 const ayarlariYaz = () => fs.writeFileSync(AYAR_DOSYASI, JSON.stringify(ayarlar, null, 2));
+// TV adresi: ortam değişkeni > ayarlar.json (uygulamadan değiştirilir) > varsayılan.
+let tvIp = process.env.TV_IP || ayarlar.tvIp || '192.168.1.190';
 
 // TV ile aynı alt ağdaki yerel arayüz (TV'ye kendimizi bununla tanıtırız, medya adresi de bu).
 function yerelArayuz() {
-  const onEk = TV_IP.split('.').slice(0, 3).join('.') + '.';
+  const onEk = tvIp.split('.').slice(0, 3).join('.') + '.';
   const hepsi = Object.values(os.networkInterfaces()).flat().filter((a) => a.family === 'IPv4' && !a.internal);
   return hepsi.find((a) => a.address.startsWith(onEk)) || hepsi[0] || { address: '127.0.0.1', mac: '00:00:00:00:00:00' };
 }
@@ -73,7 +74,7 @@ let izinBekleniyor = false;
 
 function baglan() {
   if (baglanti) return baglanti.hazir;
-  const soket = net.connect({ host: TV_IP, port: 55000 });
+  const soket = net.connect({ host: tvIp, port: 55000 });
   const kayit = { soket };
   kayit.hazir = new Promise((tamam, hata) => {
     let tampon = Buffer.alloc(0);
@@ -117,12 +118,41 @@ function baglan() {
   return kayit.hazir;
 }
 
+// ---------- TV adresi ----------
+const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+function tvIpAyarla(ip) {
+  ip = String(ip || '').trim();
+  if (!IPV4.test(ip)) throw new Error('Geçersiz IP adresi: ' + ip);
+  tvIp = ip;
+  ayarlar.tvIp = ip;
+  ayarlariYaz();
+  if (baglanti) { baglanti.soket.destroy(); baglanti = null; }
+  console.log('TV adresi: ' + ip);
+}
+// Ağda 55000 portu açık cihazı (Samsung TV) arar; adres değiştiyse kaydeder ve true döner.
+async function tvBul() {
+  const bulunan = await mi.ara(yerelArayuz().address.split('.').slice(0, 3).join('.') + '.', null, 55000);
+  if (!bulunan.length) throw new Error('Ağda Samsung TV bulunamadı (açık ve aynı ağda mı?)');
+  if (bulunan.includes(tvIp)) return false;
+  tvIpAyarla(bulunan[0]);
+  return true;
+}
+// Bağlantı kurulamazsa (adres DHCP ile değişmiş olabilir) ağı bir kez tarar.
+async function tvBaglan() {
+  try {
+    return await baglan();
+  } catch (e) {
+    if (!/bağlanılamadı|yanıt vermedi/.test(e.message) || !(await tvBul().catch(() => false))) throw e;
+    return baglan();
+  }
+}
+
 const bekle = (ms) => new Promise((r) => setTimeout(r, ms));
 let kuyruk = Promise.resolve();
 // Tuşlar sırayla gider; bağlantı 15 sn boşta kalınca kapanır.
 function gonder(paketler) {
   const is = kuyruk.then(async () => {
-    const soket = await baglan();
+    const soket = await tvBaglan();
     for (const p of paketler) {
       if (soket.destroyed) throw new Error('TV bağlantıyı kapattı');
       soket.write(p);
@@ -155,7 +185,7 @@ const xmlKacis = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').r
 async function soap(servis, eylem, govde = '', sureMs = 4000) {
   const tur = `urn:schemas-upnp-org:service:${servis}:1`;
   const xml = `<?xml version="1.0" encoding="utf-8"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:${eylem} xmlns:u="${tur}"><InstanceID>0</InstanceID>${govde}</u:${eylem}></s:Body></s:Envelope>`;
-  const y = await fetch(`http://${TV_IP}:52235/upnp/control/${servis}1`, {
+  const y = await fetch(`http://${tvIp}:52235/upnp/control/${servis}1`, {
     method: 'POST',
     headers: { 'Content-Type': 'text/xml; charset="utf-8"', SOAPACTION: `"${tur}#${eylem}"` },
     body: xml,
@@ -178,9 +208,9 @@ async function durum() {
       soap('RenderingControl', 'GetVolume', '<Channel>Master</Channel>', 1500),
       soap('RenderingControl', 'GetMute', '<Channel>Master</Channel>', 1500),
     ]);
-    return { acik: true, ses: Number(etiket(ses, 'CurrentVolume')), sessiz: etiket(sessiz, 'CurrentMute') === '1', izinBekleniyor };
+    return { ip: tvIp, acik: true, ses: Number(etiket(ses, 'CurrentVolume')), sessiz: etiket(sessiz, 'CurrentMute') === '1', izinBekleniyor };
   } catch {
-    return { acik: false, izinBekleniyor };
+    return { ip: tvIp, acik: false, izinBekleniyor };
   }
 }
 
@@ -189,7 +219,7 @@ const mi = require('./mi')(() => ayarlar, ayarlariYaz);
 
 // Ağda Mi Stick arar; bulursa adresini kaydeder. Adres değiştiyse true döner.
 async function miBul() {
-  const bulunan = await mi.ara(yerelArayuz().address.split('.').slice(0, 3).join('.') + '.', TV_IP);
+  const bulunan = await mi.ara(yerelArayuz().address.split('.').slice(0, 3).join('.') + '.', tvIp);
   if (!bulunan.length) throw new Error('Ağda Mi Stick bulunamadı (fişte ve aynı Wi-Fi\'da mı?)');
   if (bulunan.includes(ayarlar.miIp)) return false;
   ayarlar.miIp = bulunan[0];
@@ -289,6 +319,11 @@ const yollar = {
     if (!u) throw new Error('Uygulama bulunamadı');
     await miDene(() => mi.uygulamaAc(String(u.baglanti)));
   },
+  'POST /api/tv': async (g) => {
+    if (g.bul) await tvBul();
+    else tvIpAyarla(g.ip);
+    return { ip: tvIp, ...(await durum()) };
+  },
   'POST /api/tus': async (g) => { await gonder(tuslariCoz(g.tuslar).map(tusPaketi)); },
   'POST /api/yazi': async (g) => {
     if (typeof g.metin !== 'string' || !g.metin) throw new Error('Metin boş');
@@ -315,12 +350,26 @@ const yollar = {
   },
 };
 
+// Telefona uygulama olarak kurulum (PWA) dosyaları
+const STATIK = {
+  '/manifest.webmanifest': ['manifest.webmanifest', 'application/manifest+json'],
+  '/sw.js': ['sw.js', 'text/javascript; charset=utf-8'],
+  '/apple-touch-icon.png': ['simge/apple-touch-icon.png', 'image/png'],
+  ...Object.fromEntries(['simge-192.png', 'simge-512.png', 'simge-maskeli-512.png'].map((d) => [`/simge/${d}`, [`simge/${d}`, 'image/png']])),
+};
+
 http.createServer(async (istek, yanit) => {
   const url = new URL(istek.url, 'http://x');
   try {
     if (url.pathname === '/' && istek.method === 'GET') {
       yanit.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
       fs.createReadStream(path.join(__dirname, 'index.html')).pipe(yanit);
+      return;
+    }
+    const statik = STATIK[url.pathname];
+    if (statik && istek.method === 'GET') {
+      yanit.writeHead(200, { 'Content-Type': statik[1], 'Cache-Control': 'no-cache' });
+      fs.createReadStream(path.join(__dirname, statik[0])).pipe(yanit);
       return;
     }
     if (url.pathname.startsWith('/medya/') && ['GET', 'HEAD'].includes(istek.method)) {
@@ -337,7 +386,7 @@ http.createServer(async (istek, yanit) => {
     yanit.end(JSON.stringify({ hata: e.message }));
   }
 }).listen(PORT, () => {
-  console.log(`TV kumandası hazır (TV: ${TV_IP}, Mi Stick: ${ayarlar.miIp || 'henüz eşleştirilmedi'})`);
+  console.log(`TV kumandası hazır (TV: ${tvIp}, Mi Stick: ${ayarlar.miIp || 'henüz eşleştirilmedi'})`);
   console.log(`  Bu bilgisayar: http://localhost:${PORT}`);
   console.log(`  Telefon (aynı Wi-Fi): http://${yerelArayuz().address}:${PORT}`);
 });

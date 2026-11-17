@@ -1,13 +1,24 @@
 # TV Kumanda
 
-Evdeki Samsung UE40D6500 (2011, D serisi, `192.168.1.190`) ve ona HDMI ile bağlı Mi Stick (Android TV) için web kumanda. Bağımlılık yok, yalnız Node.
+Evdeki Samsung UE40D6500 (2011, D serisi) ve ona HDMI ile bağlı Mi Stick (Android TV) için web kumanda. Bağımlılık yok, yalnız Node.
 
 ## Çalıştırma
-`baslat.cmd` (ya da `node server.js`). Bilgisayarda `http://localhost:8190`, aynı Wi-Fi'daki telefonda
-`http://<bilgisayarın-ip'si>:8190` (adres başlarken konsola yazılır). Telefonda "Ana ekrana ekle" ile uygulama gibi açılır.
-Telefondan açılmıyorsa Windows Güvenlik Duvarı'nda Node'a özel ağ izni gerekir.
+Sunucu pencere açmadan arka planda çalışır; kumanda yalnız adresle kullanılır:
+bilgisayarda `http://localhost:8190`, aynı Wi-Fi'daki telefonda `http://<bilgisayarın-ip'si>:8190` (adres `sunucu.log` içinde).
+- `otomatik-baslat.cmd`: bir kez çalıştırılır; Windows her açıldığında sunucu gizli başlar (`otomatik-baslat.cmd kaldir` ile geri alınır)
+- `baslat.cmd`: sunucu kapalıysa gizli başlatır, sayfayı açar · `durdur.cmd`: sunucuyu kapatır
+- `arkaplan.vbs`: gizli başlatmanın kendisi; çıktı `sunucu.log`
+
+**Telefona uygulama olarak kurma:** Chrome'da adresi aç → ⋮ → "Ana ekrana ekle". Sayfa `manifest.webmanifest` ve `sw.js` ile
+kurulabilir uygulamadır, ama Chrome tam uygulama (adres çubuksuz) kurulumunu yalnız güvenli adreste yapar. Ev ağındaki `http://` adres için
+telefonda bir kez `chrome://flags` → "Insecure origins treated as secure" → `http://<ip>:8190` yaz, Enabled, Chrome'u yeniden başlat; sonra "Uygulamayı yükle".
+Bilgisayarın IP'si değişirse telefondaki uygulama açılmaz: modemde bilgisayara sabit IP (DHCP rezervasyonu) verilmeli.
+Telefondan açılmıyorsa Windows Güvenlik Duvarı'nda Node'a özel ağ izni gerekir. Simgeler: `node simge/uret.js`.
 
 İlk tuşta TV ekranında izin sorusu çıkar; TV kumandasıyla bir kez "İzin ver" seçilir.
+
+**TV adresi:** `ayarlar.json` → `tvIp` (ilk değer `192.168.1.190`). Modem adresi değiştirirse sunucu bağlanamayınca ağı tarar
+(port 55000) ve yeni adresi kendisi kaydeder. Elle: kumandada **TV adresi** sekmesi → IP yaz ya da **Ağda bul**.
 
 ## Ne yapar
 - Tüm kumanda tuşları, basılı tutunca tekrar (ses, kanal, oklar), bilgisayarda klavye kısayolları
@@ -33,4 +44,4 @@ Adres değişirse ilk başarısız tuşta yeniden arar.
 ## Sınırlar
 - TV kapalıyken ağdan açılamaz (bu model desteklemiyor); kapatma çalışır.
 - Kimlik doğrulama yok: ev ağındaki herkes kumandayı kullanabilir ve medya klasöründeki dosyaları okuyabilir.
-- Başka TV / port: `TV_IP` ve `PORT` ortam değişkenleri. Protokol yalnız 2011–2013 Samsung (port 55000) içindir.
+- Başka TV / port: `TV_IP` (ayarı ezer) ve `PORT` ortam değişkenleri. Protokol yalnız 2011–2013 Samsung (port 55000) içindir.

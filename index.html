@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#0b0d11">
 <title>Kumanda</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/simge/simge-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kumanda">
 <style>
   :root { --zemin:#0b0d11; --govde:#181c23; --kart:#171b22; --tus:#262c37; --tus-bas:#343c4a; --cizgi:#2a313c; --yazi:#e8ecf1; --soluk:#8b95a3; --vurgu:#4c9aff; --tehlike:#e5484d; }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -158,6 +164,7 @@
     <button data-panel="kisayol" data-cihaz="tv">Kısayollar</button>
     <button data-panel="medya" data-cihaz="tv">Medya</button>
     <button data-panel="esle" data-cihaz="mi">Eşleştir</button>
+    <button data-panel="tvadres" data-cihaz="tv">TV adresi</button>
   </div>
 </div>
 
@@ -205,6 +212,16 @@
     <div id="medya"></div>
   </div>
 
+  <div class="panel" id="p-tvadres" hidden>
+    <h2>Samsung TV adresi</h2>
+    <form id="tvIpForm">
+      <input type="text" id="tvIp" inputmode="decimal" placeholder="192.168.1.191" autocomplete="off" required>
+      <button>Kaydet</button>
+    </form>
+    <button id="tvBul">Ağda bul</button>
+    <p class="ipucu">TV'nin adresi modem yeniden başlayınca değişebilir. Bağlanamazsa sunucu ağı kendisi de tarar; olmazsa buradan yaz ya da "Ağda bul"a bas.</p>
+  </div>
+
   <div class="panel" id="p-esle" hidden>
     <h2>Mi Stick eşleştirme</h2>
     <p id="miEsleMetin" class="ipucu"></p>
@@ -222,6 +239,8 @@
 <div id="bildirim" role="status"></div>
 
 <script>
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
 let cihaz = 'tv', miDurum = {}, miKodBekleniyor = false, acikPanel = null;
@@ -292,6 +311,7 @@ async function durumYenile() {
   const kutu = $('#durum');
   if (!d) { kutu.className = 'kapali'; kutu.lastElementChild.textContent = 'Sunucu yok'; return; }
   miDurum = d.mi;
+  if (d.ip && document.activeElement !== $('#tvIp')) $('#tvIp').value = d.ip;
   if (!miKodBekleniyor) {
     $('#miEsleMetin').textContent = miDurum.eslesti
       ? 'Eşleştirilmiş. Yeniden eşleştirmek için başlat; TV ekranında yeni bir kod çıkar.'
@@ -355,6 +375,20 @@ $('#kanalForm').addEventListener('submit', (e) => { e.preventDefault(); tus([$('
 $('#yaziForm').addEventListener('submit', (e) => {
   e.preventDefault();
   dene(api(cihaz === 'mi' ? '/api/mi/yazi' : '/api/yazi', { metin: $('#yazi').value }).then(() => { $('#yazi').value = ''; }));
+});
+
+// Samsung TV adresi
+function tvAdresSonuc(y) {
+  bildir(`TV adresi: ${y.ip}` + (y.acik ? ' (bağlandı)' : ' (yanıt yok)'), y.acik);
+  durumYenile();
+}
+$('#tvIpForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  dene(api('/api/tv', { ip: $('#tvIp').value.trim() }).then(tvAdresSonuc));
+});
+$('#tvBul').addEventListener('click', () => {
+  bildir('Ağ taranıyor…', true);
+  dene(api('/api/tv', { bul: true }).then(tvAdresSonuc));
 });
 
 // Mi Stick: eşleştirme ve uygulamalar

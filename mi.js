@@ -237,12 +237,12 @@ module.exports = function miKumanda(ayarlarAl, kaydet) {
     ]))]);
   }
 
-  // Ağda 6466 portu açık cihazları bulur.
-  function ara(onEk, haric) {
+  // Ağda verilen portu (varsayılan 6466) açık cihazları bulur.
+  function ara(onEk, haric, port = 6466) {
     return Promise.all(Array.from({ length: 254 }, (_, i) => new Promise((tamam) => {
       const ip = onEk + (i + 1);
       if (ip === haric) return tamam(null);
-      const s = net.connect({ host: ip, port: 6466 });
+      const s = net.connect({ host: ip, port });
       const bitir = (sonuc) => { s.destroy(); tamam(sonuc); };
       s.setTimeout(800, () => bitir(null));
       s.on('connect', () => bitir(ip));
